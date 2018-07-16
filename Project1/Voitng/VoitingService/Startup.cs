@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -34,7 +36,24 @@ namespace VoitingService
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
+            DefaultFilesOptions options = new DefaultFilesOptions();
+            options.DefaultFileNames.Clear();
+            options.DefaultFileNames.Add("/wwwroot/index.html");
+            app.UseDefaultFiles(options);
+
+            app.UseMvc()
+                .UseDefaultFiles(options)
+                .UseStaticFiles()
+                .Use(async (context, next) =>
+            {
+                await next();
+                if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value))
+                {
+                    context.Request.Path = "/wwwroot/index.html";
+                    context.Response.StatusCode = 200;
+                    await next();
+                }
+            }); ;
         }
     }
 }
