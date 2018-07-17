@@ -20,6 +20,9 @@ namespace VoitingService.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            string activityId = Guid.NewGuid().ToString();
+            ServiceEventSource.Current.ServiceRequestStart(nameof(VotesController.Get), activityId);
+
             Interlocked.Increment(ref RequestCount);
 
             var votes = new List<KeyValuePair<string, int>>(Counts.Count);

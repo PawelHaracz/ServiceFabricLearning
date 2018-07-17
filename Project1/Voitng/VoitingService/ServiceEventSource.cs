@@ -30,8 +30,9 @@ namespace VoitingService
         // Keywords must be defined as a public class named 'Keywords' inside EventSource that uses them.
         public static class Keywords
         {
-            public const EventKeywords Requests = (EventKeywords)0x1L;
-            public const EventKeywords ServiceInitialization = (EventKeywords)0x2L;
+            public const EventKeywords Requests = (EventKeywords) 0x1L;
+            public const EventKeywords ServiceInitialization = (EventKeywords) 0x2L;
+            public const EventKeywords HealthReport = (EventKeywords) 0x4L;
         }
         #endregion
 
@@ -141,8 +142,8 @@ namespace VoitingService
         // These activities can be automatically picked up by debugging and profiling tools, which can compute their execution time, child activities,
         // and other statistics.
         private const int ServiceRequestStartEventId = 5;
-        [Event(ServiceRequestStartEventId, Level = EventLevel.Informational, Message = "Service request '{0}' started", Keywords = Keywords.Requests)]
-        public void ServiceRequestStart(string requestTypeName)
+        [Event(ServiceRequestStartEventId, Level = EventLevel.Informational, Message = "Service request '{0}' started. ActivityId: {1}", Keywords = Keywords.Requests)]
+        public void ServiceRequestStart(string requestTypeName, string activityId)
         {
             WriteEvent(ServiceRequestStartEventId, requestTypeName);
         }
@@ -152,6 +153,20 @@ namespace VoitingService
         public void ServiceRequestStop(string requestTypeName, string exception = "")
         {
             WriteEvent(ServiceRequestStopEventId, requestTypeName, exception);
+        }
+
+        private const int HealthReportEventId = 100;
+        [Event(HealthReportEventId, Level = EventLevel.LogAlways, Message = "Health report. Source '{0}' property {1} is {2}. Partition: {3}, Instance or Replica: {4}, Desc: {5}", Keywords = Keywords.HealthReport)]
+        public void HealthReport(string healtSourceId, string name, string state, Guid partitionId, long instanceOrReplica, string description)
+        {
+            WriteEvent(HealthReportEventId, healtSourceId, name, partitionId, instanceOrReplica, description);
+        }
+
+        private const int HealthRepostIntervalCHangedEventId = 101;
+        [Event(HealthReportEventId, Level = EventLevel.Verbose,  Message = "Health report interval changed to {4} seconds for {0} property {1}. Partition: {2} Instance or Replica {3}", Keywords = Keywords.HealthReport)]  
+        public void HealthReportIntervalChanged(string healtSourceId, string name, Guid partitionId, long instanceOrReplica, int duration)
+        {
+            WriteEvent(HealthReportEventId, healtSourceId, name, partitionId, instanceOrReplica, duration);
         }
         #endregion
 
